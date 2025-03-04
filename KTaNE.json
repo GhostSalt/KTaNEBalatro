@@ -1,11 +1,11 @@
 {
-    "id": "GSBFDI",
-    "name": "BFDI",
+    "id": "GSKTaNE",
+    "name": "KTaNE",
     "author": ["GhostSalt"],
-    "description": "A mod pack with a bunch of BFDI-related Jokers!",
-    "prefix": "bfdi",
-    "main_file": "BFDI.lua",
-    "badge_colour": "1C75C3",
+    "description": "A mod pack with a bunch of KTaNE-related Jokers, and an Enhancement!",
+    "prefix": "ktane",
+    "main_file": "KTaNE.lua",
+    "badge_colour": "BC4324",
     "dependencies": [
         "Steamodded (>=1.0.0~ALPHA-1225a)"
     ],
