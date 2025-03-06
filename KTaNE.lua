@@ -12,10 +12,10 @@ SMODS.Atlas {
 SMODS.current_mod.optional_features = { cardareas = { unscored = true } }
 
 function count_enhancements()
-    if not G.playing_cards then return 0 end
+  if not G.playing_cards then return 0 end
 	local enhancement_tally = 0
     for k, v in pairs(G.playing_cards) do
-        if v.ability.name ~= G.P_CENTERS.c_base then enhancement_tally = enhancement_tally + 1 end
+      if next(SMODS.get_enhancements(v)) then enhancement_tally = enhancement_tally + 1 end
     end
 	return enhancement_tally
 end
@@ -134,7 +134,7 @@ SMODS.Joker {
   pos = { x = 3, y = 0 },
   solved_pos = { x = 4, y = 0 },
   loc_vars = function(self, info_queue, card)
-    return { vars = { card.ability.extra.added_xmult, card.ability.extra.current_xmult, card.ability.extra.target_high_cards, card.ability.extra.current_high_cards } }
+    return { vars = { card.ability.extra.added_xmult, card.ability.extra.current_xmult, card.ability.extra.target_high_cards, card.ability.extra.target_high_cards - card.ability.extra.current_high_cards } }
   end,
 	blueprint_compat = true,
   calculate = function(self, card, context)
