@@ -61,6 +61,18 @@ SMODS.Enhancement {
   end
 }
 
+SMODS.Sound({
+	key = "generic",
+	path = "ktane_generic.ogg",
+  replace = true
+})
+
+SMODS.Sound({
+	key = "solve",
+	path = "ktane_solve.ogg",
+  replace = true
+})
+
 SMODS.Joker {
   key = 'wires',
   loc_txt = {
@@ -91,19 +103,39 @@ SMODS.Joker {
     if context.remove_playing_cards then
 	  if not card.ability.extra.solved then
         for k, v in ipairs(context.removed) do
-	 	  if v:is_suit("Diamonds") then card.ability.extra.diamond_status = "Y" end
-	 	  if v:is_suit("Clubs") then card.ability.extra.club_status = "Y" end
-	 	  if v:is_suit("Hearts") then card.ability.extra.heart_status = "Y" end
-	 	  if v:is_suit("Spades") then card.ability.extra.spade_status = "Y" end
-	    end
+	 	  if card.ability.extra.diamond_status ~= "Y" and v:is_suit("Diamonds") then
+        card.ability.extra.diamond_status = "Y"
+        G.E_MANAGER:add_event(Event({
+          func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = "Diamonds Cut" })
+            G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_generic', 1, 0.75) return true end})) return true end }))
+    elseif card.ability.extra.club_status ~= "Y" and v:is_suit("Clubs") then
+        card.ability.extra.club_status = "Y"
+        G.E_MANAGER:add_event(Event({
+          func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = "Clubs Cut" })
+            G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_generic', 1, 0.75) return true end})) return true end }))
+    elseif card.ability.extra.heart_status ~= "Y" and v:is_suit("Hearts") then
+        card.ability.extra.heart_status = "Y"
+        G.E_MANAGER:add_event(Event({
+          func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = "Heart Cut" })
+            G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_generic', 1, 0.75) return true end})) return true end }))
+    elseif card.ability.extra.spade_status ~= "Y" and v:is_suit("Spades") then
+        card.ability.extra.spade_status = "Y"
+        G.E_MANAGER:add_event(Event({
+          func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = "Spade Cut" })
+            G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_generic', 1, 0.75) return true end})) return true end }))
+      end
+    end
 	  else
 	    card.ability.extra.current_xmult = card.ability.extra.current_xmult + (card.ability.extra.added_xmult * #context.removed)
+      return { message = localize("k_upgrade_ex"), colour = G.C.RED, card = card }
 	  end
 	  
 	  local should_solve = not card.ability.extra.solved and card.ability.extra.diamond_status == "Y" and card.ability.extra.club_status == "Y" and card.ability.extra.heart_status == "Y" and card.ability.extra.spade_status == "Y"
 	  card.ability.extra.solved = should_solve or card.ability.extra.solved
 	  if should_solve then
-	    card.children.center:set_sprite_pos(self.solved_pos)
+      G.E_MANAGER:add_event(Event({
+        func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = "Solved!", colour = G.C.GREEN }) card.children.center:set_sprite_pos(self.solved_pos)
+          G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_solve', 1, 0.75) return true end})) return true end }))
 	  end
     end
   end,
@@ -134,6 +166,7 @@ SMODS.Joker {
   pos = { x = 3, y = 0 },
   solved_pos = { x = 4, y = 0 },
   loc_vars = function(self, info_queue, card)
+    info_queue[#info_queue+1] = G.P_CENTERS.c_pluto
     return { vars = { card.ability.extra.added_xmult, card.ability.extra.current_xmult, card.ability.extra.target_high_cards, card.ability.extra.target_high_cards - card.ability.extra.current_high_cards } }
   end,
 	blueprint_compat = true,
@@ -143,21 +176,77 @@ SMODS.Joker {
     if context.using_consumeable and card.ability.extra.solved then
 	  if context.consumeable.config.center.key == "c_pluto" then
 	    card.ability.extra.current_xmult = card.ability.extra.current_xmult + card.ability.extra.added_xmult
+      return { message = localize("k_upgrade_ex"), colour = G.C.RED, card = card }
 	  end
 	end
 	  
-	if context.joker_main and context.scoring_name == "High Card" and not card.ability.extra.solved then
-	  card.ability.extra.current_high_cards = card.ability.extra.current_high_cards + 1
-	  
-	  if card.ability.extra.current_high_cards >= card.ability.extra.target_high_cards then
-	    card.ability.extra.solved = true
-	    card.children.center:set_sprite_pos(self.solved_pos)
-	  end
+	  if context.joker_main and context.scoring_name == "High Card" and not card.ability.extra.solved then
+	    card.ability.extra.current_high_cards = card.ability.extra.current_high_cards + 1
+  
+	    if card.ability.extra.current_high_cards >= card.ability.extra.target_high_cards then
+	      card.ability.extra.solved = true
+        G.E_MANAGER:add_event(Event({
+	        func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = "Solved!", colour = G.C.GREEN }) card.children.center:set_sprite_pos(self.solved_pos)
+            G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_solve', 1, 0.75) return true end})) return true end }))
+      else
+        G.E_MANAGER:add_event(Event({
+          func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = card.ability.extra.current_high_cards.."/"..card.ability.extra.target_high_cards })
+            G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_generic', 1, 0.75) return true end})) return true end }))
+	    end
     end
   end,
   set_sprites = function(self, card, front)
     if card and card.children and card.children.center and card.children.center.set_sprite_pos and card.ability and card.ability.extra and card.ability.extra.solved then
       card.children.center:set_sprite_pos(self.solved_pos)
+    end
+  end
+}
+
+SMODS.Joker {
+  key = 'whosonfirst',
+  loc_txt = {
+    name = 'Who\'s on First',
+    text = {
+      "{C:green,s:0.75}To solve this Joker:{}",
+	    "Use {C:attention}#3#{} {C:inactive}[#1#]{} copies",
+      "of {C:tarot}The Tower{}",
+      "{C:green,s:0.75}When solved, gains the ability:{}",
+      "Played {C:attention}Stone{} cards give",
+	    "{C:white,X:mult}X#2#{} Mult when scored",
+    }
+  },
+  config = { extra = { current_stage = 0, given_xmult = 1.5, target_towers = 3 } },
+  rarity = 2,
+  atlas = 'KTaNE',
+  cost = 8,
+  pos = { x = 3, y = 1 },
+  solved_positions = { { x = 4, y = 1 }, { x = 5, y = 1 }, { x = 6, y = 1 } },
+  loc_vars = function(self, info_queue, card)
+    info_queue[#info_queue+1] = G.P_CENTERS.c_tower
+    return { vars = { card.ability.extra.target_towers - card.ability.extra.current_stage, card.ability.extra.given_xmult, card.ability.extra.target_towers } }
+  end,
+	blueprint_compat = true,
+  calculate = function(self, card, context)
+    if context.individual and context.cardarea == G.play and context.other_card.ability.name == 'Stone Card' and card.ability.extra.current_stage >= 3 then return { xmult = card.ability.extra.given_xmult } end
+	
+    if context.using_consumeable and card.ability.extra.current_stage < 3 then
+	  if context.consumeable.config.center.key == "c_tower" then
+      card.ability.extra.current_stage = card.ability.extra.current_stage + 1
+	    if card.ability.extra.current_stage >= card.ability.extra.target_towers then
+        G.E_MANAGER:add_event(Event({
+	        func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = "Solved!", colour = G.C.GREEN })
+            G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_solve', 1, 0.75) card.children.center:set_sprite_pos(self.solved_positions[card.ability.extra.current_stage]) return true end})) return true end }))
+      else
+        G.E_MANAGER:add_event(Event({
+          func = function() card_eval_status_text(card, 'extra', nil, nil, nil, { message = card.ability.extra.current_stage.."/"..card.ability.extra.target_towers })
+            G.E_MANAGER:add_event(Event({func = function()play_sound('ktane_generic', 1, 0.75) card.children.center:set_sprite_pos(self.solved_positions[card.ability.extra.current_stage]) return true end})) return true end }))
+	    end
+	  end
+	end
+  end,
+  set_sprites = function(self, card, front)
+    if card and card.children and card.children.center and card.children.center.set_sprite_pos and card.ability and card.ability.extra and card.ability.extra.current_stage and card.ability.extra.current_stage > 0 then
+      card.children.center:set_sprite_pos(self.solved_positions[card.ability.extra.current_stage + 1])
     end
   end
 }
